@@ -35,10 +35,10 @@ namespace BH.Services.DomainManagers
                 return _repo.Find(g => g.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)).SingleOrDefault();
         }
 
-        public Group GetById(int id)
+        public Group GetById(int id, List<string> childEntities = null)
         {
             using (_repo = new Repository<Group>(BHDbContext.Create()))
-                return _repo.GetById(id);
+                return _repo.Find(g => g.Id == id, childEntities).SingleOrDefault();
         }
 
         public Group Update(Group group)
@@ -51,9 +51,11 @@ namespace BH.Services.DomainManagers
         {
             using (_repo = new Repository<Group>(BHDbContext.Create()))
             {
-                var groupToDelete = _repo.GetById(id, new List<string>() {"ParentGroup", "ChildGroups"});
+                var groupToDelete =
+                    _repo.Find(g => g.Id == id, new List<string>() {"ParentGroup", "ChildGroups"}).SingleOrDefault();
                 var parentGroup = groupToDelete.ParentGroupId != null
-                    ? _repo.GetById(groupToDelete.ParentGroupId.Value, new List<string>() {"ChildGroups"})
+                    ? _repo.Find(g => g.Id == groupToDelete.ParentGroupId.Value, new List<string>() {"ChildGroups"})
+                        .SingleOrDefault()
                     : null;
                 var childGroups = groupToDelete.ChildGroups.ToList();
                 foreach (var childGroup in childGroups)
@@ -81,8 +83,8 @@ namespace BH.Services.DomainManagers
         {
             using (_repo = new Repository<Group>(BHDbContext.Create()))
             {
-                var pg = _repo.GetById(parentGroup.Id, new List<string>() {"ChildGroups"});
-                var cg = _repo.GetById(childGroup.Id, new List<string>() {"ParentGroup"});
+                var pg = _repo.Find(g => g.Id == parentGroup.Id, new List<string>() {"ChildGroups"}).SingleOrDefault();
+                var cg = _repo.Find(g => g.Id == childGroup.Id, new List<string>() {"ParentGroup"}).SingleOrDefault();
                 cg.ParentGroupId = pg.Id;
                 pg.ChildGroups.Add(cg);
                 cg.TopGroupId = pg.TopGroupId;
@@ -94,7 +96,10 @@ namespace BH.Services.DomainManagers
         public Group GetParent(int childGroupId)
         {
             using (_repo = new Repository<Group>(BHDbContext.Create()))
-                return _repo.GetById(childGroupId, new List<string>() {"ParentGroup", "ParentGroup.ParentGroup"}).ParentGroup;
+                return
+                    _repo.Find(g => g.Id == childGroupId, new List<string>() {"ParentGroup", "ParentGroup.ParentGroup"})
+                        .SingleOrDefault()
+                        .ParentGroup;
         }
 
         public void DeleteAll()
@@ -111,8 +116,8 @@ namespace BH.Services.DomainManagers
         {
             using (_repo = new Repository<Group>(BHDbContext.Create()))
             {
-                var pg = _repo.GetById(parentGroup.Id, new List<string>() { "ChildGroups" });
-                var cg = _repo.GetById(childGroup.Id, new List<string>() { "ParentGroup" });
+                var pg = _repo.Find(g => g.Id == parentGroup.Id, new List<string>() { "ChildGroups" }).SingleOrDefault();
+                var cg = _repo.Find(g => g.Id == childGroup.Id, new List<string>() { "ParentGroup" }).SingleOrDefault();
                 cg.ParentGroupId = pg.Id;
                 pg.ChildGroups.Add(cg);
                 cg.TopGroupId = pg.TopGroupId;
@@ -124,7 +129,10 @@ namespace BH.Services.DomainManagers
         public ICollection<Group> GetChildren(int parentId)
         {
             using (_repo = new Repository<Group>(BHDbContext.Create()))
-                return _repo.GetById(parentId, new List<string>() {"ChildGroups", "ChildGroups.ChildGroups"}).ChildGroups;
+                return
+                    _repo.Find(g => g.Id == parentId, new List<string>() {"ChildGroups", "ChildGroups.ChildGroups"})
+                        .SingleOrDefault()
+                        .ChildGroups;
         }
     }
 }

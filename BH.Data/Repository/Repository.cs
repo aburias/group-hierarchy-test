@@ -9,7 +9,7 @@ using BH.Models.Interfaces;
 
 namespace BH.Data.Repository
 {
-    public class Repository<TEntity> : IDisposable, IRepository<TEntity> where TEntity : class, IEntity
+    public class Repository<TEntity> : IDisposable, IRepository<TEntity> where TEntity : class
     {
         private DbContext _context;
         private DbSet<TEntity> _set; 
@@ -41,17 +41,6 @@ namespace BH.Data.Repository
             return set;
         }
 
-        public TEntity GetById(int id, List<string> childEntities = null)
-        {
-            var set = _set.AsQueryable();
-            if (childEntities != null)
-            {
-                foreach (var childEntity in childEntities)
-                    set = _set.Include(childEntity);
-            }
-            return set.SingleOrDefault(e => e.Id == id);
-        }
-
         public TEntity Create(TEntity entity)
         {
             _set.Add(entity);
@@ -68,7 +57,7 @@ namespace BH.Data.Repository
 
         public bool Delete(int id)
         {
-            _set.Remove(GetById(id));
+            _set.Remove(_set.Find(id));
             return _context.SaveChanges() > 0;
         }
 

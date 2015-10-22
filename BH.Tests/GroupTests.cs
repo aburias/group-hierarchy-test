@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace BH.Tests
 {
     [TestClass]
-    public class GroupTest
+    public class GroupTests
     {
         private GroupManager groupManager;
 
@@ -150,8 +150,13 @@ namespace BH.Tests
                 Name = "Group C"
             };
             groupManager.Create(groupC);
+
             groupManager.AddChild(groupA, groupB);
             groupManager.AddChild(groupA, groupC);
+
+            //groupManager.AssignParent(groupB, groupA);
+            //groupManager.AssignParent(groupC, groupA);
+
             var groupChildren = groupManager.GetChildren(groupA.Id);
             foreach (var child in groupChildren)
                 Console.WriteLine("Child Name: " + child.Name);

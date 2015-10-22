@@ -87,6 +87,7 @@
   <ItemGroup>
     <Compile Include="DomainManagers\GroupManager.cs" />
     <Compile Include="DomainManagers\Manager.cs" />
+    <Compile Include="IdentityManagers\BHUserManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
