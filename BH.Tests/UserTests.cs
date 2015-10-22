@@ -21,6 +21,22 @@ namespace BH.Tests
         }
 
         [TestMethod]
+        public void Can_Create_User()
+        {
+            var newUser = new User()
+            {
+                FirstName = "New User",
+                LastName = "Galore",
+                Email = "shakoy@test.com",
+                UserName = "testuser",
+                EmailConfirmed = true
+            };
+            userManager.Create(newUser, "testpass");
+            Assert.IsNotNull(userManager.Find("testuser", "testpass"));
+            userManager.Delete(newUser);
+        }
+
+        [TestMethod]
         public void Can_Authenticate_User()
         {
             var adminUser = userManager.Find("admin", "adminpass123");

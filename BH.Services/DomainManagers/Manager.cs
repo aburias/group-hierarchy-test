@@ -8,7 +8,7 @@ using BH.Models.Interfaces;
 
 namespace BH.Services.DomainManagers
 {
-    public class Manager<TEntity> where TEntity : class, IEntity
+    public class Manager<TEntity> where TEntity : class
     {
         protected Repository<TEntity> _repo;
     }

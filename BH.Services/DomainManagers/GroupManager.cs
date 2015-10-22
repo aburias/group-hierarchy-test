@@ -7,11 +7,17 @@ using BH.Data.Databases;
 using BH.Data.Interfaces;
 using BH.Data.Repository;
 using BH.Models.DomainModels;
+using BH.Services.IdentityManagers;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using System.Data.Entity;
 
 namespace BH.Services.DomainManagers
 {
     public class GroupManager : Manager<Group>
     {
+        BHUserManager userManager = new BHUserManager(new UserStore<User>(BHDbContext.Create()));
+
         public Group Create(Group group)
         {
             using (_repo = new Repository<Group>(BHDbContext.Create()))
@@ -133,6 +139,63 @@ namespace BH.Services.DomainManagers
                     _repo.Find(g => g.Id == parentId, new List<string>() {"ChildGroups", "ChildGroups.ChildGroups"})
                         .SingleOrDefault()
                         .ChildGroups;
+        }
+
+        public bool AddUser(int groupId, string userId)
+        {
+            using (var _context = BHDbContext.Create())
+            {
+                var group = _context.Groups.Include(g => g.Users).SingleOrDefault(g => g.Id == groupId);
+                var user = _context.Users.Include(u => u.Groups).SingleOrDefault(u => u.Id == userId);
+
+                if (user.Groups != null)
+                {
+                    if (user.Groups.Any(g => g.TopGroupId == group.TopGroupId))
+                        return false;
+                }
+
+                if (user.Groups == null)
+                    user.Groups = new List<Group>();
+
+                if (group.Users == null)
+                    group.Users = new List<User>();
+
+                user.Groups.Add(group);
+                //userManager.UpdateUser(user);
+                group.Users.Add(user);
+                //_repo.Update(group);
+
+                _context.Entry(user).State = EntityState.Modified;
+                _context.Entry(group).State = EntityState.Modified;
+                _context.SaveChanges();
+
+                return true;
+            }
+            //using (_repo = new Repository<Group>(BHDbContext.Create()))
+            //{
+            //    var group = _repo.Find(g => g.Id == groupId, new List<string>() {"Users"}).SingleOrDefault();
+            //    var user = userManager.GetById(userId, new List<string>() {"Groups"});
+
+            //    if (user.Groups != null)
+            //    {
+            //        if (user.Groups.Any(g => g.TopGroupId == group.TopGroupId))
+            //            return false;
+            //    }
+
+            //    if (user.Groups == null)
+            //        user.Groups = new List<Group>();
+
+            //    if (group.Users == null)
+            //        group.Users = new List<User>();
+
+            //    //user.Groups.Add(group);
+            //    //userManager.UpdateUser(user);
+
+            //    group.Users.Add(user);
+            //    _repo.Update(group);
+
+            //    return true;
+            //}
         }
     }
 }
